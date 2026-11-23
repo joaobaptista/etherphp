@@ -766,6 +766,10 @@ class CapsulesService {
               scheduledDate: rc.scheduledDate || null,
               createdAt: meta.createdAt || (rc.createdAt ? new Date(rc.createdAt).getTime() : Date.now()),
               userId: rc.userId,
+              // Mensagens ligadas no banco (messages.capsule_id): a lista do servidor é a que vale
+              messages: Array.isArray(rc.messages)
+                ? rc.messages.map(sanitizeMessageRef).filter(Boolean)
+                : meta.messages || local.messages || [],
               // Mudanças locais ainda não enviadas continuam pendentes
               syncState: local.syncState === 'pending' ? 'pending' : 'synced',
             });
@@ -855,7 +859,7 @@ class CapsulesService {
       audios: (cap.audios || []).map(sanitizeMediaRef).filter(Boolean),
       videos: (cap.videos || []).map(sanitizeMediaRef).filter(Boolean),
       calibrationAudio: sanitizeMediaRef(cap.calibrationAudio),
-      messages: (cap.messages || []).map(sanitizeMessageRef).filter(Boolean),
+      // As mensagens não vão no metadata: o vínculo fica em messages.capsule_id
     };
     return {
       id: cap.id,

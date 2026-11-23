@@ -163,7 +163,7 @@ describe('capsulesService — gravação no servidor', () => {
     expect(calls.some((c) => c.url.endsWith('/vault/media/mem-del') && c.method === 'DELETE')).toBe(true);
   });
 
-  it('vincula à cápsula a mensagem escrita salva no editor e envia o vínculo ao servidor (issue #12)', async () => {
+  it('vincula à cápsula a mensagem escrita salva no editor; o vínculo fica no banco, não no metadata (issue #12)', async () => {
     capsulesService.addCapsules([{ id: 'cap-msg', title: 'Cápsula da Mari', recipient: 'Mariana' }]);
 
     capsulesService.addCapsuleMessage('cap-msg', { id: 'msg-1', status: 'draft', deliveryType: 'date', deliveryDate: null });
@@ -181,14 +181,11 @@ describe('capsulesService — gravação no servidor', () => {
     // Sobrevive à gravação local (localStorage)
     expect(capsulesService.getCapsules().find((c) => c.id === 'cap-msg').messages).toHaveLength(1);
 
+    // O servidor guarda o vínculo em messages.capsule_id (enviado com a própria mensagem); o metadata não leva mensagens
     await capsulesService.syncCapsule('cap-msg');
     const posts = calls.filter((c) => c.url.endsWith('/capsules') && c.method === 'POST');
     const sent = JSON.parse(posts[posts.length - 1].body);
-    expect(sent.metadata.messages).toEqual([
-      expect.objectContaining({ id: 'msg-1', status: 'scheduled', deliveryType: 'date', deliveryDate: '2027-03-10' }),
-    ]);
-    // Título e texto da mensagem não vão nos metadados da cápsula
-    expect(JSON.stringify(sent.metadata.messages)).not.toContain('title');
+    expect(sent.metadata.messages).toBeUndefined();
 
     // Excluir a carta da cápsula desvincula e apaga a mensagem no servidor
     const afterDelete = capsulesService.deleteCapsuleContentItem('cap-msg', 'text');
@@ -196,6 +193,32 @@ describe('capsulesService — gravação no servidor', () => {
     await Promise.resolve();
     expect(calls.some((c) => c.method === 'DELETE' && c.url.endsWith('/messages/msg-1'))).toBe(true);
   });
+  it('usa a lista de mensagens que o servidor devolve com a cápsula', async () => {
+    capsulesService.addCapsules([{ id: 'cap-srv-msg', title: 'Cápsula do Leo', recipient: 'Leo' }]);
+    capsulesService.addCapsuleMessage('cap-srv-msg', { id: 'msg-antiga', status: 'draft' });
+    const realFetch = globalThis.fetch;
+    globalThis.fetch = vi.fn(async (url, options = {}) => {
+      if (String(url).endsWith('/capsules') && (options.method || 'GET') === 'GET') {
+        return jsonResponse([
+          {
+            id: 'cap-srv-msg',
+            title: 'Cápsula do Leo',
+            recipient: 'Leo',
+            metadata: {},
+            messages: [{ id: 'msg-do-banco', status: 'scheduled', deliveryType: 'date', deliveryDate: '2027-01-02', savedAt: 1 }],
+          },
+        ]);
+      }
+      return realFetch(url, options);
+    });
+
+    await capsulesService.fetchCapsulesFromApi();
+
+    expect(capsulesService.getCapsules().find((c) => c.id === 'cap-srv-msg').messages).toEqual([
+      expect.objectContaining({ id: 'msg-do-banco', status: 'scheduled', deliveryDate: '2027-01-02' }),
+    ]);
+  });
+
   it('adiciona fotos do Google (já no cofre) a uma cápsula por referência e move a memória no servidor', async () => {
     capsulesService.addCapsules([{ id: 'cap-gp', title: 'Cápsula da Ana', recipient: 'Ana (Filha)' }]);
     const googlePhoto = { id: 'gp-585', mediaId: 'mem-google-1', memoryId: 585, img: '/api/vault/media/mem-google-1?variant=display&token=x', title: 'IMG_1.jpg' };

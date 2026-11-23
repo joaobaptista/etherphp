@@ -14,6 +14,7 @@ use App\Models\Message;
 use App\Models\User;
 use Dedoc\Scramble\Attributes\BodyParameter;
 use Dedoc\Scramble\Attributes\Group;
+use Dedoc\Scramble\Attributes\QueryParameter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -24,6 +25,7 @@ class MessageController extends Controller
     /**
      * Listar mensagens
      */
+    #[QueryParameter('capsuleId', 'Só as mensagens desta cápsula.', type: 'string')]
     public function index(Request $request): JsonResponse
     {
         /** @var User $user */
@@ -33,6 +35,9 @@ class MessageController extends Controller
 
         if (is_string($request->query('status')) && $request->query('status') !== '') {
             $query->where('status', $request->query('status'));
+        }
+        if (is_string($request->query('capsuleId')) && $request->query('capsuleId') !== '') {
+            $query->where('capsule_id', $request->query('capsuleId'));
         }
         if (is_string($request->query('recipient')) && $request->query('recipient') !== '') {
             $like = '%'.strtolower($request->query('recipient')).'%';
@@ -63,7 +68,7 @@ class MessageController extends Controller
     /**
      * Criar uma mensagem
      *
-     * Com `capsuleId`, a mensagem fica ligada à cápsula.
+     * Com `capsuleId`, a mensagem fica ligada à cápsula (que precisa ser do usuário; senão, 422). Ao excluir a cápsula, as mensagens dela saem junto.
      */
     public function store(CreateMessageRequest $request, CreateMessageAction $action): JsonResponse
     {
@@ -87,6 +92,7 @@ class MessageController extends Controller
             mediaFiles: is_array($v['mediaFiles'] ?? null) ? array_values($v['mediaFiles']) : [],
             category: (string) ($v['category'] ?? 'Cartas de Amor'),
             status: (string) ($v['status'] ?? 'scheduled'),
+            capsuleId: isset($v['capsuleId']) ? (string) $v['capsuleId'] : null,
         ));
 
         return (new MessageResource($message))->response()->setStatusCode(201);

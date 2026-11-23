@@ -78,6 +78,12 @@ class Capsule extends Model
         return $this->hasMany(CapsuleGuardian::class, 'capsule_id');
     }
 
+    /** @return HasMany<Message, $this> */
+    public function messages(): HasMany
+    {
+        return $this->hasMany(Message::class, 'capsule_id');
+    }
+
     /** @return HasMany<Memory, $this> */
     public function memories(): HasMany
     {

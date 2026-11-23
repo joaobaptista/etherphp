@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateMessageRequest extends FormRequest
 {
@@ -16,6 +17,8 @@ class UpdateMessageRequest extends FormRequest
     {
         return [
             'title' => ['sometimes', 'nullable', 'string'],
+            // Capsule of this user the message belongs to; null detaches it
+            'capsuleId' => ['sometimes', 'nullable', 'string', Rule::exists('capsules', 'id')->where('user_id', $this->user()?->getAuthIdentifier())],
             'content' => ['sometimes', 'nullable', 'string'],
             'recipientName' => ['sometimes', 'nullable', 'string'],
             'recipient_name' => ['sometimes', 'nullable', 'string'],
@@ -37,5 +40,11 @@ class UpdateMessageRequest extends FormRequest
             'status' => ['sometimes', 'nullable', 'string', 'max:32'],
             'active' => ['sometimes', 'boolean'],
         ];
+    }
+
+    /** @return array<string, string> */
+    public function messages(): array
+    {
+        return ['capsuleId.exists' => 'Cápsula não encontrada. Abra a cápsula de novo e tente salvar outra vez.'];
     }
 }

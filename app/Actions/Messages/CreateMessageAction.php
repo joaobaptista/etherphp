@@ -35,6 +35,7 @@ class CreateMessageAction
         return Message::query()->create([
             'id' => 'msg-'.Str::uuid(),
             'user_id' => $user->id,
+            'capsule_id' => $data->capsuleId,
             'title' => $title,
             'content' => $data->content,
             'recipient_name' => $data->recipientName ?? '',

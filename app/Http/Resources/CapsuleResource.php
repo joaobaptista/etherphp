@@ -7,6 +7,7 @@ use App\Enums\DeliveryTypeEnum;
 use App\Models\Capsule;
 use App\Models\CapsuleGuardian;
 use App\Models\Memory;
+use App\Models\Message;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -92,6 +93,17 @@ class CapsuleResource extends JsonResource
             'createdAt' => $this->created_at?->toIso8601String(),
             'updatedAt' => $this->updated_at?->toIso8601String(),
         ];
+
+        // Messages linked in the database (messages.capsule_id): the source of truth, not metadata.messages
+        if ($this->relationLoaded('messages')) {
+            $data['messages'] = $this->messages->map(static fn (Message $m): array => [
+                'id' => $m->id,
+                'status' => $m->status->value,
+                'deliveryType' => $m->delivery_type->value,
+                'deliveryDate' => $m->delivery_date?->toDateString(),
+                'savedAt' => $m->updated_at?->getTimestampMs(),
+            ])->values()->all();
+        }
 
         if ($this->relationLoaded('memories')) {
             $data['memories'] = $this->memories->map(static fn (Memory $m): array => [

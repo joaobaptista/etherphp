@@ -24,5 +24,6 @@ class CreateMessageData extends Data
         public array $mediaFiles = [],
         public string $category = 'Cartas de Amor',
         public string $status = 'scheduled',
+        public ?string $capsuleId = null,
     ) {}
 }

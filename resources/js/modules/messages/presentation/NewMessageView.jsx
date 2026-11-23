@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import messagesRepository from '../infrastructure/messagesRepository.js';
+import capsulesService from '../../capsules/application/capsulesService.js';
 import { getStoredAuthToken } from '../../../core/api/apiUrl.js';
 import { sealText, openText, LOCKED_TEXT } from '../../../core/services/fieldCipher.js';
 import vaultKeyService from '../../../core/services/vaultKeyService.js';
@@ -30,6 +31,8 @@ export default function NewMessageView({ onNavigateTab, capsuleId = null, recipi
   const [recipientName, setRecipientName] = useState(initialRecipientName);
   const [recipientEmail, setRecipientEmail] = useState('');
   const [editingId, setEditingId] = useState(null);
+  // Status gravado no servidor (draft/scheduled): salvar o passo 1 não desfaz um agendamento
+  const [savedStatus, setSavedStatus] = useState(null);
   const [savedMessages, setSavedMessages] = useState([]);
 
   // Estado da IA Local na Máquina do Usuário
@@ -162,6 +165,7 @@ export default function NewMessageView({ onNavigateTab, capsuleId = null, recipi
 
   const resetEditor = () => {
     setEditingId(null);
+    setSavedStatus(null);
     setTitle('');
     setContent('');
     setRecipientName(initialRecipientName);
@@ -180,6 +184,7 @@ export default function NewMessageView({ onNavigateTab, capsuleId = null, recipi
       return;
     }
     setEditingId(msg.id);
+    setSavedStatus(msg.status || null);
     setTitle(msg.title || '');
     setContent(msg.content || '');
     setRecipientName(msg.recipientName || '');
@@ -226,6 +231,8 @@ export default function NewMessageView({ onNavigateTab, capsuleId = null, recipi
     emailNotification,
     whatsappNotification,
     status,
+    // Vínculo gravado no banco junto com a mensagem (messages.capsule_id)
+    ...(capsuleId ? { capsuleId } : {}),
     category: 'Cartas de Amor',
     mediaFiles: mediaFiles.map((f) => ({ name: f.name, size: f.size, type: f.type })),
     vaultAttachments: vaultAttachments.map((v) => ({
@@ -241,11 +248,21 @@ export default function NewMessageView({ onNavigateTab, capsuleId = null, recipi
     const token = getStoredAuthToken();
     if (!token) throw new Error('Sua sessão expirou. Entre novamente para salvar.');
     const payload = await buildPayload(status);
-    const saved = editingId
-      ? await messagesRepository.updateMessage(token, editingId, payload)
-      : await messagesRepository.createMessage(token, payload);
+    const send = () => (editingId
+      ? messagesRepository.updateMessage(token, editingId, payload)
+      : messagesRepository.createMessage(token, payload));
+    let saved;
+    try {
+      saved = await send();
+    } catch (err) {
+      // Cápsula criada neste aparelho e ainda não enviada: envia a cápsula e tenta de novo uma vez
+      if (!(capsuleId && err.status === 422)) throw err;
+      await capsulesService.syncCapsule(capsuleId);
+      saved = await send();
+    }
     if (saved?.id) {
       setEditingId(saved.id);
+      setSavedStatus(status);
       // Dentro de uma cápsula, a mensagem precisa ficar vinculada a ela (issue #12)
       if (capsuleId && onSaveToCapsule) {
         onSaveToCapsule({
@@ -389,28 +406,27 @@ export default function NewMessageView({ onNavigateTab, capsuleId = null, recipi
     setVaultAttachments((prev) => prev.filter((i) => i.id !== itemId));
   };
 
-  const handleSaveDraft = async () => {
-    forceSaveNow();
-    setIsSavingMessage(true);
-    try {
-      await persistMessage('draft');
-      await loadSavedMessages();
-      showToast('💾 Rascunho salvo.');
-    } catch (err) {
-      showToast(`Rascunho guardado só neste aparelho: ${err.message}`);
-    } finally {
-      setIsSavingMessage(false);
-    }
-  };
-
   const handleSaveMessage = async () => {
     if (!title.trim()) {
       showToast('Por favor, informe o título da mensagem.');
       return;
     }
 
+    // Passo 1: grava de verdade (na conta e na cápsula) e só então segue para a entrega.
+    // Até a entrega ser escolhida, a mensagem fica sem agendamento; uma já agendada continua agendada.
     if (step === 1) {
-      setStep(2);
+      forceSaveNow();
+      setIsSavingMessage(true);
+      try {
+        await persistMessage(savedStatus === 'scheduled' ? 'scheduled' : 'draft');
+        setStep(2);
+        showToast(capsuleId ? '💾 Mensagem salva na cápsula. Agora escolha a entrega.' : '💾 Mensagem salva. Agora escolha a entrega.');
+        if (!capsuleId) await loadSavedMessages();
+      } catch (err) {
+        showToast(`Não foi possível salvar a mensagem: ${err.message}`);
+      } finally {
+        setIsSavingMessage(false);
+      }
       return;
     }
 
@@ -537,7 +553,7 @@ export default function NewMessageView({ onNavigateTab, capsuleId = null, recipi
 
           <div
             className={`nm-step-item ${step === 2 ? 'active' : ''}`}
-            onClick={() => title.trim() && setStep(2)}
+            onClick={() => step === 1 && !isSavingMessage && handleSaveMessage()}
           >
             <span className="nm-step-number">2</span>
             <span className="nm-step-label">Entrega</span>
@@ -949,7 +965,7 @@ export default function NewMessageView({ onNavigateTab, capsuleId = null, recipi
             </div>
           )}
 
-          {/* 5. Ações do Rodapé (Salvar como Rascunho / Salvar Mensagem) */}
+          {/* 5. Ações do Rodapé (Salvar e continuar / Salvar Mensagem) */}
           <footer className="nm-card-footer">
             {step === 2 && (
               <button
@@ -964,20 +980,11 @@ export default function NewMessageView({ onNavigateTab, capsuleId = null, recipi
             <div className="nm-footer-right-buttons">
               <button
                 type="button"
-                className="nm-btn-rascunho"
-                onClick={handleSaveDraft}
-                disabled={isSavingMessage}
-              >
-                Salvar como Rascunho
-              </button>
-
-              <button
-                type="button"
                 className="nm-btn-salvar"
                 onClick={handleSaveMessage}
                 disabled={isSavingMessage}
               >
-                {step === 1 ? 'Continuar para Entrega' : 'Salvar Mensagem'}
+                {isSavingMessage ? 'Salvando…' : step === 1 ? 'Salvar e continuar para Entrega' : 'Salvar Mensagem'}
               </button>
             </div>
           </footer>

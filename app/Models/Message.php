@@ -11,6 +11,7 @@ use Illuminate\Support\Carbon;
 /**
  * @property string $id
  * @property string $user_id
+ * @property string|null $capsule_id
  * @property string $title
  * @property string|null $content
  * @property string|null $recipient_name
@@ -44,6 +45,7 @@ class Message extends Model
     protected $fillable = [
         'id',
         'user_id',
+        'capsule_id',
         'title',
         'content',
         'recipient_name',
@@ -86,5 +88,11 @@ class Message extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /** @return BelongsTo<Capsule, $this> */
+    public function capsule(): BelongsTo
+    {
+        return $this->belongsTo(Capsule::class, 'capsule_id');
     }
 }

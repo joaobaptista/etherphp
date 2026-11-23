@@ -38,6 +38,11 @@ class UpdateMessageAction
             }
         }
 
+        // Ownership of the capsule is checked by UpdateMessageRequest
+        if (array_key_exists('capsuleId', $attributes)) {
+            $updates['capsule_id'] = is_string($attributes['capsuleId']) && $attributes['capsuleId'] !== '' ? $attributes['capsuleId'] : null;
+        }
+
         if (array_key_exists('deliveryType', $attributes) || array_key_exists('delivery_type', $attributes)) {
             $raw = (string) ($attributes['deliveryType'] ?? $attributes['delivery_type'] ?? 'date');
             $updates['delivery_type'] = DeliveryTypeEnum::tryFrom($raw) ?? DeliveryTypeEnum::Date;

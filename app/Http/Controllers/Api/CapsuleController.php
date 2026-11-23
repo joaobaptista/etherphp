@@ -32,7 +32,7 @@ class CapsuleController extends Controller
 
         $capsules = Capsule::query()
             ->where('user_id', $user->id)
-            ->with('capsuleGuardians')
+            ->with(['capsuleGuardians', 'messages' => static fn ($query) => $query->latest()])
             ->withCount('memories')
             ->orderByDesc('created_at')
             ->get();
@@ -49,7 +49,9 @@ class CapsuleController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
-        $capsule = Capsule::query()->with('capsuleGuardians')->find($id);
+        $capsule = Capsule::query()
+            ->with(['capsuleGuardians', 'messages' => static fn ($query) => $query->latest()])
+            ->find($id);
 
         if ($capsule === null) {
             return response()->json(['detail' => 'Cápsula não encontrada.'], 404);
