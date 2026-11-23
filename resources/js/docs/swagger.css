@@ -1,0 +1,47 @@
+/* Ethernity look for Swagger UI (same palette as the Node docs and the app) */
+:root {
+    --docs-primary: #f05a47;
+    --docs-espresso: #2d1917;
+    --docs-espresso-soft: #4a2824;
+    --docs-cream: #faf7f2;
+    --docs-blush: #faded8;
+}
+
+html { box-sizing: border-box; overflow-y: scroll; }
+*, *::before, *::after { box-sizing: inherit; }
+body { margin: 0; background: var(--docs-cream); }
+body, .swagger-ui, .swagger-ui .info .title, .swagger-ui .opblock-tag, .swagger-ui .btn, .swagger-ui select, .swagger-ui input {
+    font-family: 'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+.docs-banner {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 24px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    color: #fff;
+    background: linear-gradient(135deg, var(--docs-espresso) 0%, var(--docs-espresso-soft) 100%);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+}
+.docs-banner h1 { margin: 0; font-size: 20px; font-weight: 700; }
+.docs-banner nav { display: flex; flex-wrap: wrap; gap: 16px; }
+.docs-banner a { color: var(--docs-blush); font-size: 13px; font-weight: 600; text-decoration: none; }
+.docs-banner a:hover { text-decoration: underline; }
+
+.swagger-ui .topbar { display: none; }
+.swagger-ui .info .title { color: var(--docs-primary); }
+.swagger-ui .btn.authorize { color: #fff; background-color: var(--docs-primary); border-color: var(--docs-primary); }
+.swagger-ui .btn.authorize svg { fill: #fff; }
+.swagger-ui .opblock.opblock-post { border-color: var(--docs-primary); background: rgba(240, 90, 71, 0.05); }
+.swagger-ui .opblock.opblock-post .opblock-summary-method { background: var(--docs-primary); }
+.swagger-ui .opblock.opblock-get .opblock-summary-method { background: #0284c7; }
+.swagger-ui .opblock.opblock-put .opblock-summary-method { background: #d97706; }
+.swagger-ui .opblock.opblock-patch .opblock-summary-method { background: #7c3aed; }
+.swagger-ui .opblock.opblock-delete .opblock-summary-method { background: #dc2626; }
+
+@media (max-width: 640px) {
+    .docs-banner { padding: 12px 16px; }
+    .swagger-ui .wrapper { padding: 0 16px; }
+}
