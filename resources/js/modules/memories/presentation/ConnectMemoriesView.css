@@ -786,37 +786,6 @@
   align-items: center;
 }
 
-.connect-memories-header {
-  text-align: center;
-  max-width: 720px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.connect-title {
-  font-family: var(--font-display);
-  font-size: 38px;
-  font-weight: 700;
-  color: #2D1917;
-  letter-spacing: -0.5px;
-  margin: 0 0 14px;
-  line-height: 1.2;
-}
-
-.connect-subtitle {
-  font-size: 15px;
-  line-height: 1.65;
-  color: #7A6963;
-  margin: 0;
-}
-
-
-
-
-
-
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -1006,94 +975,8 @@
 }
 
 /* ── 11. Seção de Segurança & Privacidade (Exato ao Mockup) ────────── */
-.connect-security-section {
-  width: 100%;
-  max-width: 720px;
-  margin: 8px auto 0;
-  text-align: center;
-}
-
-.security-section-title {
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 1.2px;
-  color: #2D1917;
-  text-transform: uppercase;
-  margin: 0 0 18px;
-}
-
-.security-items-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px 28px;
-  text-align: left;
-}
-
-.security-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 13px;
-  color: #5A4A45;
-  line-height: 1.4;
-}
-
-.security-item i {
-  color: #7A6963;
-  font-size: 14px;
-  width: 18px;
-  text-align: center;
-}
 
 /* ── 12. Ações de Navegação Inferior ────────────────────────────────── */
-.connect-footer-actions {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
-  margin-top: 6px;
-  width: 100%;
-}
-
-.btn-link-skip {
-  background: none;
-  border: none;
-  font-size: 14px;
-  font-weight: 600;
-  color: #7A6963;
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  transition: color 0.2s;
-  padding: 6px 12px;
-}
-
-.btn-link-skip:hover {
-  color: #2D1917;
-}
-
-.btn-advance-curation {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  background-color: transparent;
-  border: 1.5px solid #2D1917;
-  color: #2D1917;
-  padding: 11px 26px;
-  border-radius: 28px;
-  font-size: 14.5px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-advance-curation:hover {
-  background-color: #2D1917;
-  color: #FFFFFF;
-  transform: translateY(-1px);
-}
-
-
 
 .photo-card-caption-block {
   display: flex;

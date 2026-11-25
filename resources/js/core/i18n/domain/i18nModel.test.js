@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   normalizeLanguageCode,
-  detectBrowserLanguage,
+  initialLanguage,
   resolveTranslationKey,
   interpolateParams,
   translate,
@@ -29,22 +29,12 @@ describe('i18nModel Domain Rules', () => {
     });
   });
 
-  describe('Browser Language Detection', () => {
-    it('detects language from navigator.languages list', () => {
-      const mockNav = { languages: ['en-US', 'pt-BR'], language: 'en-US' };
-      expect(detectBrowserLanguage(mockNav)).toBe('en');
-
-      const mockNavSpanish = { languages: ['es-MX', 'en-US'], language: 'es-MX' };
-      expect(detectBrowserLanguage(mockNavSpanish)).toBe('es');
-
-      const mockNavPt = { languages: ['pt-BR'], language: 'pt-BR' };
-      expect(detectBrowserLanguage(mockNavPt)).toBe('pt');
-    });
-
-    it('falls back to default language for unsupported locales', () => {
-      const mockNavOther = { languages: ['de-DE', 'it-IT'], language: 'de-DE' };
-      expect(detectBrowserLanguage(mockNavOther)).toBe('pt');
-      expect(detectBrowserLanguage(null)).toBe('pt');
+  describe('Initial language', () => {
+    it('starts in Portuguese, whatever the browser language, until the user picks one in Settings', () => {
+      expect(initialLanguage(null)).toBe('pt');
+      expect(initialLanguage('')).toBe('pt');
+      expect(initialLanguage('en')).toBe('en');
+      expect(initialLanguage('es-419')).toBe('es');
     });
   });
 

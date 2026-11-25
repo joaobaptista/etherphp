@@ -2,22 +2,20 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import adminRepository from '../infrastructure/adminRepository.js';
 import { getUserInitials } from '../../profile/domain/profileModel.js';
 import { useI18n } from '../../../core/i18n/presentation/useI18n.js';
-import NotificationBell from '../../../core/components/NotificationBell.jsx';
 import './AdminView.css';
 
 export default function AdminUsersView({
   token,
   profile,
-  onNavigateTab,
   showToast,
-  onSwitchMode,
 }) {
   const { t } = useI18n();
+  // Só o root concede ou remove administrador e exclui outro administrador (o servidor também recusa os demais)
+  const isViewerRoot = Boolean(profile?.is_root_admin);
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [search, setSearch] = useState('');
-  const [filterRole, setFilterRole] = useState('all'); // 'all', 'admin', 'user'
   const [processingId, setProcessingId] = useState(null);
   const [selectedIds, setSelectedIds] = useState([]);
   const [isBatchDeleting, setIsBatchDeleting] = useState(false);
@@ -42,7 +40,6 @@ export default function AdminUsersView({
       setLoadError('');
       const res = await adminRepository.listUsers(token, {
         search,
-        role: filterRole,
       });
       setUsers(res.users || []);
     } catch (err) {
@@ -52,7 +49,7 @@ export default function AdminUsersView({
     } finally {
       setIsLoading(false);
     }
-  }, [token, search, filterRole]);
+  }, [token, search]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -191,35 +188,7 @@ export default function AdminUsersView({
   return (
     <div className="admin-screen-wrapper fade-in">
       <div className="admin-screen-container">
-        {/* Cabeçalho */}
-        <div className="admin-top-bar">
-          <div>
-            <span className="admin-badge-pill">
-              <i className="fa-solid fa-shield-halved"></i>
-              {t('admin.modeAdminBadge') || 'MODO ADMINISTRADOR'}
-            </span>
-            <h1 className="admin-main-title">{t('admin.usersTitle') || 'Gestão Geral de Usuários'}</h1>
-            <p className="admin-main-subtitle">
-              {t('admin.usersSubtitle') ||
-                'Visualize todos os usuários cadastrados na plataforma, gerencie perfis e conceda ou revogue privilégios de administrador.'}
-            </p>
-          </div>
-
-          <div className="admin-top-actions">
-            <button
-              type="button"
-              className="btn-switch-mode-outline"
-              onClick={() => onSwitchMode && onSwitchMode('personal')}
-              title={t('admin.switchToUser') || 'Voltar ao Modo Pessoal'}
-            >
-              <i className="fa-solid fa-arrow-left"></i>
-              <span>{t('admin.switchToUser') || 'Voltar ao Modo Pessoal'}</span>
-            </button>
-            <NotificationBell onNavigateTab={onNavigateTab} />
-          </div>
-        </div>
-
-        {/* Barra de Filtros, Busca e Ações em Lote */}
+        {/* Busca */}
         <div className="admin-toolbar-card">
           <div className="admin-search-wrapper">
             <i className="fa-solid fa-magnifying-glass"></i>
@@ -230,63 +199,16 @@ export default function AdminUsersView({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            {search && (
-              <button
-                type="button"
-                onClick={() => setSearch('')}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}
-              >
-                <i className="fa-solid fa-xmark"></i>
-              </button>
-            )}
-          </div>
-
-          <div className="admin-filter-tabs">
+            {/* Espaço do "x" sempre reservado: o campo não muda de largura ao digitar */}
             <button
               type="button"
-              className={`admin-filter-btn ${filterRole === 'all' ? 'active' : ''}`}
-              onClick={() => setFilterRole('all')}
+              className="admin-search-clear"
+              onClick={() => setSearch('')}
+              aria-label={t('common.clear') || 'Limpar'}
+              style={{ visibility: search ? 'visible' : 'hidden' }}
+              tabIndex={search ? 0 : -1}
             >
-              {t('admin.filterAll') || 'Todos os Usuários'}
-            </button>
-            <button
-              type="button"
-              className={`admin-filter-btn ${filterRole === 'admin' ? 'active' : ''}`}
-              onClick={() => setFilterRole('admin')}
-            >
-              <i className="fa-solid fa-crown" style={{ marginRight: 6 }}></i>
-              {t('admin.filterAdmins') || 'Administradores'}
-            </button>
-            <button
-              type="button"
-              className={`admin-filter-btn ${filterRole === 'user' ? 'active' : ''}`}
-              onClick={() => setFilterRole('user')}
-            >
-              {t('admin.filterStandard') || 'Usuários Padrão'}
-            </button>
-          </div>
-
-          <div className="admin-batch-toolbar-actions">
-            <button
-              type="button"
-              className={`btn-select-all-non-admins ${allEligibleSelected ? 'all-selected' : ''}`}
-              onClick={handleToggleSelectAllNonAdmins}
-              disabled={eligibleUsers.length === 0}
-              title={
-                allEligibleSelected
-                  ? t('admin.deselectAll') || 'Desmarcar todos'
-                  : t('admin.selectAllNonAdmins') || 'Selecionar todos (exceto admins)'
-              }
-            >
-              <i className={allEligibleSelected ? 'fa-solid fa-square-check' : 'fa-regular fa-square-check'}></i>
-              <span>
-                {allEligibleSelected
-                  ? t('admin.deselectAll') || 'Desmarcar todos'
-                  : t('admin.selectAllNonAdmins') || 'Selecionar todos (exceto admins)'}
-              </span>
-              <span className="eligible-pill" title={`${eligibleUsers.length} usuários comuns elegíveis`}>
-                {eligibleUsers.length}
-              </span>
+              <i className="fa-solid fa-xmark"></i>
             </button>
           </div>
         </div>
@@ -341,6 +263,14 @@ export default function AdminUsersView({
         <div className="admin-table-card">
           <div className="admin-table-container">
             <table className="admin-table">
+              {/* Larguras fixas: as colunas não pulam a cada resultado da busca */}
+              <colgroup>
+                <col style={{ width: 56 }} />
+                <col style={{ width: '36%' }} />
+                <col style={{ width: '14%' }} />
+                <col style={{ width: '20%' }} />
+                <col />
+              </colgroup>
               <thead>
                 <tr>
                   <th style={{ width: 44, textAlign: 'center' }}>
@@ -367,8 +297,9 @@ export default function AdminUsersView({
                   <th>{t('admin.userColActions') || 'Ações'}</th>
                 </tr>
               </thead>
-              <tbody>
-                {isLoading ? (
+              {/* Nova busca: a lista atual continua na tela (apagada) até chegar a nova */}
+              <tbody className={isLoading && users.length > 0 ? 'is-refreshing' : undefined} aria-busy={isLoading}>
+                {isLoading && users.length === 0 ? (
                   <tr>
                     <td colSpan="5" style={{ textAlign: 'center', padding: '40px' }}>
                       <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: 24, color: '#EE5945' }}></i>
@@ -485,44 +416,48 @@ export default function AdminUsersView({
                               </span>
                             ) : (
                               <>
-                                <button
-                                  type="button"
-                                  className={`admin-action-btn ${u.is_admin ? 'demote' : 'promote'}`}
-                                  onClick={() => handleToggleAdmin(u)}
-                                  disabled={isProcessing}
-                                  title={u.is_admin ? t('admin.removeAdmin') : t('admin.makeAdmin')}
-                                >
-                                  {isProcessing ? (
-                                    <i className="fa-solid fa-spinner fa-spin"></i>
-                                  ) : u.is_admin ? (
-                                    <>
-                                      <i className="fa-solid fa-user-minus"></i>
-                                      <span>{t('admin.removeAdmin') || 'Revogar Admin'}</span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <i className="fa-solid fa-crown"></i>
-                                      <span>{t('admin.makeAdmin') || 'Tornar Admin'}</span>
-                                    </>
-                                  )}
-                                </button>
+                                {isViewerRoot && (
+                                  <button
+                                    type="button"
+                                    className={`admin-action-btn ${u.is_admin ? 'demote' : 'promote'}`}
+                                    onClick={() => handleToggleAdmin(u)}
+                                    disabled={isProcessing}
+                                    title={u.is_admin ? t('admin.removeAdmin') : t('admin.makeAdmin')}
+                                  >
+                                    {isProcessing ? (
+                                      <i className="fa-solid fa-spinner fa-spin"></i>
+                                    ) : u.is_admin ? (
+                                      <>
+                                        <i className="fa-solid fa-user-minus"></i>
+                                        <span>{t('admin.removeAdmin') || 'Revogar Admin'}</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <i className="fa-solid fa-crown"></i>
+                                        <span>{t('admin.makeAdmin') || 'Tornar Admin'}</span>
+                                      </>
+                                    )}
+                                  </button>
+                                )}
 
-                                <button
-                                  type="button"
-                                  className="admin-action-btn delete"
-                                  onClick={() => handleDeleteUser(u)}
-                                  disabled={isProcessing}
-                                  title={t('admin.deleteUser') || 'Excluir Usuário'}
-                                >
-                                  {isProcessing ? (
-                                    <i className="fa-solid fa-spinner fa-spin"></i>
-                                  ) : (
-                                    <>
-                                      <i className="fa-regular fa-trash-can"></i>
-                                      <span>{t('admin.deleteUser') || 'Excluir'}</span>
-                                    </>
-                                  )}
-                                </button>
+                                {(!u.is_admin || isViewerRoot) && (
+                                  <button
+                                    type="button"
+                                    className="admin-action-btn delete"
+                                    onClick={() => handleDeleteUser(u)}
+                                    disabled={isProcessing}
+                                    title={t('admin.deleteUser') || 'Excluir Usuário'}
+                                  >
+                                    {isProcessing ? (
+                                      <i className="fa-solid fa-spinner fa-spin"></i>
+                                    ) : (
+                                      <>
+                                        <i className="fa-regular fa-trash-can"></i>
+                                        <span>{t('admin.deleteUser') || 'Excluir'}</span>
+                                      </>
+                                    )}
+                                  </button>
+                                )}
                               </>
                             )}
                           </div>

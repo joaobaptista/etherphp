@@ -3,25 +3,30 @@ import profileRepository from '../infrastructure/profileRepository.js';
 import { getUserInitials, getAbsolutePhotoUrl, formatWhatsAppNumber } from '../domain/profileModel.js';
 import { convertImageToWebP } from '../../../core/services/mediaOptimizer.js';
 import { useI18n } from '../../../core/i18n/presentation/useI18n.js';
+import usePwaInstall from '../../../core/hooks/usePwaInstall.js';
 import './ProfileView.css';
-import vaultKeyService from '../../../core/services/vaultKeyService.js';
-import VaultKeyModal from './VaultKeyModal.jsx';
 
-import NotificationBell from '../../../core/components/NotificationBell.jsx';
-
+/**
+ * Configurações: foto, preferências (aparência, idioma e instalação) e dados pessoais & contato.
+ * Plano, senha do cofre, ajuda e sair ficam no menu da conta (barra do topo).
+ */
 export default function ProfileView({
   profile,
   setProfile,
   token,
-  onNavigateTab,
-  onLogout,
   showToast,
   theme,
   toggleTheme,
-  subscription,
-  onOpenSubscription,
 }) {
-  const { t } = useI18n();
+  const { t, language, changeLanguage, supportedLanguages, languageMeta } = useI18n();
+  const { canInstall, install } = usePwaInstall();
+
+  const handleInstall = async () => {
+    const result = await install();
+    if (result === 'installed') showToast?.(t('profile.installPwaSuccess'));
+    else if (result === 'ios-hint') showToast?.(t('profile.installIosHint'));
+    else if (result === 'desktop-hint') showToast?.(t('profile.installDesktopHint'));
+  };
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -33,53 +38,6 @@ export default function ProfileView({
   const [localPhotoPreview, setLocalPhotoPreview] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const fileInputRef = useRef(null);
-
-  // PWA install
-  const [deferredPwaPrompt, setDeferredPwaPrompt] = useState(null);
-  const [isStandalone, setIsStandalone] = useState(false);
-  const [vaultStatus, setVaultStatus] = useState(vaultKeyService.status);
-  const [vaultModalMode, setVaultModalMode] = useState(null);
-
-  useEffect(() => {
-    const unsubscribe = vaultKeyService.subscribe(setVaultStatus);
-    vaultKeyService.refresh();
-    return unsubscribe;
-  }, []);
-
-  const VAULT_CARD = {
-    unknown: { sub: 'Verificando…', mode: null },
-    error: { sub: 'Não foi possível verificar agora', mode: null },
-    not_configured: { sub: 'Crie agora para proteger seu conteúdo', mode: 'setup' },
-    locked: { sub: 'Bloqueado neste aparelho — toque para abrir', mode: 'unlock' },
-    unlocked: { sub: 'Desbloqueado neste aparelho', mode: 'change' },
-  };
-  const vaultCard = VAULT_CARD[vaultStatus] || VAULT_CARD.unknown;
-
-  useEffect(() => {
-    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
-      setIsStandalone(true);
-    }
-    const handleBeforeInstall = (e) => {
-      e.preventDefault();
-      setDeferredPwaPrompt(e);
-    };
-    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
-    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
-  }, []);
-
-  const handleInstallPwa = async () => {
-    if (deferredPwaPrompt) {
-      deferredPwaPrompt.prompt();
-      const { outcome } = await deferredPwaPrompt.userChoice;
-      if (outcome === 'accepted') {
-        if (showToast) showToast(t('profile.installPwaSuccess') || '🎉 Aplicativo instalado com sucesso no seu dispositivo!');
-      }
-      setDeferredPwaPrompt(null);
-    } else {
-      const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-      if (showToast) showToast(isIos ? (t('profile.installIosHint') || 'Para instalar no iOS: toque no botão Compartilhar e selecione "Adicionar à Tela de Início".') : (t('profile.installDesktopHint') || 'Para instalar no desktop: clique no ícone de instalação na barra de endereços do navegador.'));
-    }
-  };
 
   // Sincronizar com perfil existente
   useEffect(() => {
@@ -189,34 +147,9 @@ export default function ProfileView({
   return (
     <div className="profile-screen-wrapper fade-in">
       <div className="profile-screen-container">
-        {/* Cabeçalho & Breadcrumbs */}
-        <div className="prof-top-bar">
-          <div className="prof-left-title-block">
-            <nav className="prof-breadcrumbs" aria-label="Navegação">
-              <span
-                className="prof-crumb-link"
-                onClick={() => onNavigateTab && onNavigateTab('vault')}
-              >
-                {t('nav.vault') || 'Meu Cofre'}
-              </span>
-              <span className="prof-crumb-sep">&gt;</span>
-              <span className="prof-crumb-current">{t('profile.breadcrumb') || 'Perfil & Configurações da Conta'}</span>
-            </nav>
-
-            <h1 className="prof-main-title">{t('profile.title') || 'Perfil & Configurações da Conta'}</h1>
-            <p className="prof-main-subtitle">
-              {t('profile.subtitle') || 'Gerencie seus dados de acesso, contatos, segurança e preferências da conta.'}
-            </p>
-          </div>
-
-          <div className="prof-top-actions">
-            <NotificationBell onNavigateTab={onNavigateTab} />
-          </div>
-        </div>
-
         {/* Grid de 2 Colunas */}
         <div className="prof-grid-layout">
-          {/* Coluna Lateral: Resumo, Foto & Ações Rápidas */}
+          {/* Coluna Lateral: Foto */}
           <aside className="prof-sidebar-column">
             <div className="prof-white-card">
               <div className="prof-avatar-box">
@@ -267,109 +200,61 @@ export default function ProfileView({
                 <h3 className={`prof-user-name${name ? ' person-name' : ''}`}>{name || 'Seu Nome'}</h3>
                 <p className="prof-user-email">{email || 'seuemail@exemplo.com'}</p>
               </div>
-
-              {/* Botões de Ações Rápidas */}
-              <div className="prof-quick-actions-group">
-                {/* Meu Plano & Assinatura */}
-                <button
-                  type="button"
-                  className="prof-action-btn-card"
-                  onClick={onOpenSubscription}
-                >
-                  <div className="prof-action-icon-box coral">
-                    <i className="fa-solid fa-crown"></i>
-                  </div>
-                  <div className="prof-action-meta">
-                    <div className="prof-action-title-row">
-                      <span className="prof-action-title">{t('profile.myPlanCardTitle') || 'Meu Plano & Assinatura'}</span>
-                    </div>
-                    <span className="prof-plan-pill-tag">
-                      {subscription?.planName || 'Plano Infinity'}
-                    </span>
-                    <span className="prof-action-sub">{t('profile.unlimitedLegacyVault') || 'Cofre e Memórias Ilimitadas'}</span>
-                  </div>
-                  <i className="fa-solid fa-chevron-right prof-action-chevron"></i>
-                </button>
-
-                {/* Senha do Cofre (conhecimento zero) */}
-                <div className="prof-vault-key-card">
-                  <button
-                    type="button"
-                    className="prof-action-btn-card"
-                    onClick={() => vaultCard.mode && setVaultModalMode(vaultCard.mode)}
-                    disabled={!vaultCard.mode}
-                  >
-                    <div className="prof-action-icon-box purple">
-                      <i className={`fa-solid ${vaultStatus === 'unlocked' ? 'fa-lock-open' : 'fa-lock'}`}></i>
-                    </div>
-                    <div className="prof-action-meta">
-                      <span className="prof-action-title">Senha do Cofre</span>
-                      <span className="prof-action-sub">{vaultCard.sub}</span>
-                    </div>
-                    <i className="fa-solid fa-chevron-right prof-action-chevron"></i>
-                  </button>
-                  {(vaultStatus === 'unlocked' || vaultStatus === 'locked') && (
-                    <div className="prof-vault-key-links">
-                      {vaultStatus === 'unlocked' ? (
-                        <>
-                          <button type="button" onClick={() => setVaultModalMode('change')}>Trocar senha</button>
-                          <button type="button" onClick={() => setVaultModalMode('regenerate')}>Nova chave de recuperação</button>
-                          <button type="button" onClick={() => vaultKeyService.lock()}>Bloquear</button>
-                        </>
-                      ) : (
-                        <button type="button" onClick={() => setVaultModalMode('recover')}>Esqueci a senha do cofre</button>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Alternar Aparência */}
-                <button
-                  type="button"
-                  className="prof-action-btn-card"
-                  onClick={toggleTheme}
-                >
-                  <div className="prof-action-icon-box yellow">
-                    <i className={`fa-solid ${theme === 'dark' ? 'fa-sun' : 'fa-moon'}`}></i>
-                  </div>
-                  <div className="prof-action-meta">
-                    <span className="prof-action-title">{t('profile.appearanceTitle') || 'Aparência'}</span>
-                    <span className="prof-action-sub">
-                      {theme === 'dark' ? (t('profile.darkModeActive') || 'Modo Escuro (Ativo)') : (t('profile.lightModeActive') || 'Modo Claro (Ativo)')}
-                    </span>
-                  </div>
-                  <i className="fa-solid fa-chevron-right prof-action-chevron"></i>
-                </button>
-
-                {/* PWA */}
-                {!isStandalone && (
-                  <button
-                    type="button"
-                    className="prof-action-btn-card"
-                    onClick={handleInstallPwa}
-                  >
-                    <div className="prof-action-icon-box purple">
-                      <i className="fa-solid fa-download"></i>
-                    </div>
-                    <div className="prof-action-meta">
-                      <span className="prof-action-title">{t('profile.installPwaTitle') || 'Instalar Aplicativo (PWA)'}</span>
-                      <span className="prof-action-sub">{t('profile.installPwaSubtitle') || 'Acesso Rápido Standalone'}</span>
-                    </div>
-                    <i className="fa-solid fa-chevron-right prof-action-chevron"></i>
-                  </button>
-                )}
-
-                {/* Sair da Conta */}
-                <button
-                  type="button"
-                  className="prof-btn-logout-card"
-                  onClick={onLogout}
-                >
-                  <i className="fa-solid fa-arrow-right-from-bracket"></i>
-                  <span>{t('profile.logoutBtn') || 'Sair da Conta'}</span>
-                </button>
-              </div>
             </div>
+
+            {/* Preferências: aparência, idioma e instalação do aplicativo */}
+            <section className="prof-white-card prof-prefs-card" aria-labelledby="prof-prefs-title">
+              <h2 id="prof-prefs-title" className="prof-prefs-title">{t('profile.preferencesTitle')}</h2>
+
+              <button
+                type="button"
+                role="switch"
+                aria-checked={theme === 'dark'}
+                className="prof-pref-row prof-pref-clickable"
+                onClick={toggleTheme}
+              >
+                <i className={`fa-solid ${theme === 'dark' ? 'fa-moon' : 'fa-sun'} prof-pref-icon`} aria-hidden="true"></i>
+                <span className="prof-pref-text">
+                  {t('profile.appearanceTitle')}
+                  <small>{theme === 'dark' ? t('userMenu.themeDark') : t('userMenu.themeLight')}</small>
+                </span>
+                <span className={`prof-switch${theme === 'dark' ? ' on' : ''}`} aria-hidden="true"></span>
+              </button>
+
+              <div className="prof-pref-row">
+                <i className="fa-solid fa-language prof-pref-icon" aria-hidden="true"></i>
+                <span className="prof-pref-text">
+                  {t('common.language')}
+                  <small>{t('profile.languageSubtitle')}</small>
+                </span>
+              </div>
+              <div className="prof-lang-switcher" role="radiogroup" aria-label={t('common.language')}>
+                {supportedLanguages.map((lang) => (
+                  <button
+                    key={lang}
+                    type="button"
+                    role="radio"
+                    aria-checked={language === lang}
+                    lang={languageMeta[lang].htmlLang}
+                    className={`prof-lang-btn${language === lang ? ' active' : ''}`}
+                    onClick={() => changeLanguage(lang)}
+                  >
+                    {languageMeta[lang].name}
+                  </button>
+                ))}
+              </div>
+
+              {canInstall && (
+                <button type="button" className="prof-pref-row prof-pref-clickable" onClick={handleInstall}>
+                  <i className="fa-solid fa-download prof-pref-icon" aria-hidden="true"></i>
+                  <span className="prof-pref-text">
+                    {t('profile.installPwaTitle')}
+                    <small>{t('profile.installPwaSubtitle')}</small>
+                  </span>
+                  <i className="fa-solid fa-chevron-right prof-pref-chevron" aria-hidden="true"></i>
+                </button>
+              )}
+            </section>
           </aside>
 
           {/* Coluna Principal: Formulário de Dados Pessoais & Segurança */}
@@ -516,7 +401,6 @@ export default function ProfileView({
           </main>
         </div>
       </div>
-      {vaultModalMode && <VaultKeyModal initialMode={vaultModalMode} onClose={() => setVaultModalMode(null)} />}
     </div>
   );
 }

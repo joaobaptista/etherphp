@@ -1,0 +1,475 @@
+/* ==========================================================================
+   Barra do topo: trilha à esquerda; busca, atalhos e menu da conta à direita
+   ========================================================================== */
+/*
+ * O resto do site (menu lateral e páginas) usa cores claras fixas, mesmo no modo escuro.
+ * A barra segue o mesmo visual redefinindo aqui as variáveis do tema; um modo escuro
+ * completo só precisa trocar estes valores em [data-theme="dark"] .app-topbar.
+ */
+.app-topbar {
+  --bg-surface: #FFFFFF;
+  --bg-surface-subtle: #F8F4EE;
+  --bg-surface-elevated: #F2EBE1;
+  --border-color: #ECE5DC;
+  --text-main: #2D1917;
+  --text-muted: #7E6C66;
+  --text-light: #A89892;
+  --color-primary: #F05A47;
+  --color-primary-light: #FDF3F1;
+  --color-danger: #E53935;
+  --shadow-sm: 0 1px 3px rgba(45, 25, 23, 0.03), 0 1px 2px rgba(45, 25, 23, 0.02);
+  --shadow-lg: 0 12px 36px rgba(45, 25, 23, 0.07), 0 4px 12px rgba(45, 25, 23, 0.03);
+
+  position: sticky;
+  top: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 60px;
+  padding: 10px 28px;
+  background-color: var(--bg-surface);
+  border-bottom: 1px solid var(--border-color);
+  font-family: var(--font-ui);
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* Marca só no celular (no computador ela já está no menu lateral) */
+.topbar-brand-icon,
+.topbar-brand-text {
+  display: none;
+}
+
+.topbar-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  font-size: 15px;
+}
+
+.topbar-crumb {
+  background: none;
+  border: none;
+  padding: 4px 2px;
+  font: inherit;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.topbar-crumb:hover {
+  color: var(--color-primary);
+}
+
+.topbar-crumb-sep {
+  color: var(--text-light);
+}
+
+.topbar-crumb-current {
+  color: var(--text-main);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* ---- Busca */
+.topbar-search {
+  position: relative;
+  margin-right: 8px;
+}
+
+.topbar-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 13px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.topbar-search-input {
+  width: 280px;
+  height: 38px;
+  padding: 0 34px 0 34px;
+  border: 1.5px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--bg-surface);
+  color: var(--text-main);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, width 0.2s ease;
+}
+
+.topbar-search-input::placeholder {
+  color: var(--text-light);
+}
+
+.topbar-search-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+/* Some o "x" nativo do campo de busca: o Esc limpa */
+.topbar-search-input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.topbar-search-kbd {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 1px 6px;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  background: var(--bg-surface-subtle);
+  pointer-events: none;
+}
+
+.topbar-search-input:focus ~ .topbar-search-kbd {
+  display: none;
+}
+
+.topbar-search-results {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 360px;
+  max-height: 420px;
+  overflow-y: auto;
+  padding: 6px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  box-shadow: var(--shadow-lg);
+}
+
+.topbar-search-group {
+  display: block;
+  padding: 8px 10px 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-light);
+}
+
+.topbar-search-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  background: none;
+  border: none;
+  border-radius: 9px;
+  text-align: left;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  color: var(--text-main);
+  cursor: pointer;
+}
+
+.topbar-search-item i {
+  width: 18px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.topbar-search-item.active {
+  background: var(--bg-surface-elevated);
+}
+
+.topbar-search-item-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topbar-search-item-sub {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.topbar-search-empty {
+  margin: 0;
+  padding: 14px 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ---- Atalhos (calendário, ajuda, notificações) */
+.topbar-icon-btn,
+.app-topbar .header-circle-btn {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  box-shadow: none;
+  color: var(--text-main);
+  font-size: 17px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.topbar-icon-btn:hover,
+.app-topbar .header-circle-btn:hover {
+  background: var(--bg-surface-elevated);
+  color: var(--color-primary);
+  transform: none;
+  box-shadow: none;
+  border: none;
+}
+
+.topbar-icon-btn:focus-visible,
+.app-topbar .header-circle-btn:focus-visible,
+.topbar-avatar-btn:focus-visible,
+.topbar-crumb:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ---- Avatar e menu da conta */
+.topbar-account {
+  position: relative;
+  margin-left: 6px;
+}
+
+.topbar-avatar-btn {
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+}
+
+.topbar-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #FFFFFF;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.topbar-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.topbar-avatar-sm {
+  width: 38px;
+  height: 38px;
+  font-size: 14px;
+}
+
+.topbar-avatar-lg {
+  width: 44px;
+  height: 44px;
+  font-size: 16px;
+}
+
+.topbar-avatar-btn:hover .topbar-avatar {
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+.topbar-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 300px;
+  max-height: calc(100vh - 90px);
+  overflow-y: auto;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg);
+  padding: 6px;
+}
+
+.topbar-menu-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 10px 12px;
+}
+
+.topbar-menu-identity {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Troca entre modo pessoal e administração (só para administradores) */
+.topbar-mode-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 6px 10px;
+  background: var(--color-primary-light);
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--color-primary);
+  cursor: pointer;
+}
+
+.topbar-mode-switch:hover {
+  border-color: var(--color-primary);
+}
+
+.topbar-mode-switch.is-admin {
+  background: var(--text-main);
+  color: #FFFFFF;
+}
+
+.topbar-mode-switch:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.topbar-menu-identity strong {
+  font-size: 15px;
+  color: var(--text-main);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topbar-menu-identity span {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topbar-menu-section {
+  padding: 4px 0;
+  border-top: 1px solid var(--border-color);
+}
+
+.topbar-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 9px 10px;
+  background: none;
+  border: none;
+  border-radius: 10px;
+  text-align: left;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
+  cursor: pointer;
+}
+
+button.topbar-menu-item:hover,
+button.topbar-menu-item:focus-visible {
+  background: var(--bg-surface-elevated);
+  outline: none;
+}
+
+.topbar-menu-item > i {
+  width: 18px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.topbar-menu-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.topbar-menu-text small {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.topbar-menu-item.danger,
+.topbar-menu-item.danger > i {
+  color: var(--color-danger);
+}
+
+/* ---- Celular: marca à esquerda; sino e avatar à direita */
+@media (max-width: 900px) {
+  .app-topbar {
+    padding: 8px 14px;
+    min-height: 56px;
+  }
+
+  .topbar-brand-icon {
+    display: block;
+    height: 30px;
+    width: auto;
+  }
+
+  .topbar-brand-text {
+    display: inline-flex;
+  }
+
+  .topbar-breadcrumb,
+  .topbar-search,
+  .topbar-shortcut {
+    display: none;
+  }
+
+  .topbar-menu {
+    position: fixed;
+    top: 62px;
+    right: 10px;
+    left: 10px;
+    width: auto;
+  }
+}
+
+@media (min-width: 901px) and (max-width: 1100px) {
+  .topbar-search-input {
+    width: 200px;
+  }
+}

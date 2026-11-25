@@ -39,6 +39,8 @@ class AdminController extends Controller
 
     /**
      * Conceder ou remover o papel de administrador
+     *
+     * Só o administrador principal (root) pode. Um administrador comum recebe 403.
      */
     #[BodyParameter('is_admin', 'true para tornar administrador.', required: true, type: 'bool')]
     public function updateRole(Request $request, string $id, UpdateUserRoleAction $action): JsonResponse

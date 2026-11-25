@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
 import Sidebar from '../../../core/components/Sidebar.jsx';
 import BottomNav from '../../../core/components/BottomNav.jsx';
-import HeaderActions from '../../../core/components/HeaderActions.jsx';
+import AppTopBar from '../../../core/components/AppTopBar.jsx';
 import NetworkStatusBar from '../../../core/components/NetworkStatusBar.jsx';
-import logoIconSvg from '../../../assets/logo-icon.svg';
-import BrandWordmark from '../../../core/components/BrandWordmark.jsx';
 import profileRepository from '../../profile/infrastructure/profileRepository.js';
 import { isUserAdmin as checkIsUserAdmin } from '../../profile/domain/profileModel.js';
 import subscriptionRepository from '../../subscription/infrastructure/subscriptionRepository.js';
@@ -24,6 +22,7 @@ const CapsulesView = lazy(() => import('../../capsules/presentation/CapsulesView
 const AvatarVoiceView = lazy(() => import('../../avatar/presentation/AvatarVoiceView.jsx'));
 const LegacyCalendarView = lazy(() => import('../../calendar/presentation/LegacyCalendarView.jsx'));
 const ProfileView = lazy(() => import('../../profile/presentation/ProfileView.jsx'));
+const VaultSecurityView = lazy(() => import('../../profile/presentation/VaultSecurityView.jsx'));
 const SubscriptionPlansView = lazy(() => import('../../subscription/presentation/SubscriptionPlansView.jsx'));
 const AdminUsersView = lazy(() => import('../../admin/presentation/AdminUsersView.jsx'));
 const AdminDashboardView = lazy(() => import('../../admin/presentation/AdminDashboardView.jsx'));
@@ -140,6 +139,13 @@ export default function MainApp({ token, onLogout }) {
     if (operatingMode !== 'personal') handleSwitchOperatingMode('personal');
     if (String(activeTab).startsWith('admin_')) handleNavigateTab('memories');
   }, [isProfileVerified, isUserAdmin, operatingMode, activeTab, handleSwitchOperatingMode, handleNavigateTab]);
+
+  // Busca do topo: abre a cápsula escolhida (o "at" faz abrir de novo a mesma cápsula)
+  const [capsuleToOpen, setCapsuleToOpen] = useState(null);
+  const handleOpenCapsule = useCallback((capsuleId) => {
+    setCapsuleToOpen({ id: capsuleId, at: Date.now() });
+    handleNavigateTab('capsules');
+  }, [handleNavigateTab]);
 
   const handleOpenSubscription = useCallback(() => {
     setSubscriptionReturnTab(activeTab === 'subscription' ? 'profile' : activeTab);
@@ -260,30 +266,30 @@ export default function MainApp({ token, onLogout }) {
       <Sidebar
         activeTab={activeTab}
         setActiveTab={handleNavigateTab}
-        onLogout={onLogout}
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-        theme={theme}
-        onToggleTheme={toggleTheme}
-        profile={profile}
         operatingMode={effectiveOperatingMode}
-        onToggleOperatingMode={handleSwitchOperatingMode}
       />
 
       {/* 2. ÁREA PRINCIPAL */}
       <div className="main-content" style={{ position: 'relative' }}>
         
-        {/* Topbar Mobile (Visível apenas em telas menores) */}
-        <header className="mobile-topbar">
-          <div className="mobile-topbar-spacer" aria-hidden="true"></div>
-          <div className="mobile-brand">
-            <img src={logoIconSvg} alt="Ethernity DMs" className="mobile-logo-icon" />
-            <BrandWordmark className="mobile-logo-text" />
-          </div>
-          <HeaderActions
-            onNavigateTab={handleNavigateTab}
-          />
-        </header>
+        {/* Barra do topo: trilha, busca, atalhos e menu da conta (no celular: marca, sino e avatar) */}
+        <AppTopBar
+          activeTab={activeTab}
+          onNavigateTab={handleNavigateTab}
+          profile={profile}
+          isAdmin={isUserAdmin}
+          operatingMode={effectiveOperatingMode}
+          onSwitchOperatingMode={(mode) => {
+            handleSwitchOperatingMode(mode);
+            handleNavigateTab(mode === 'admin' ? 'admin_users' : 'memories');
+          }}
+          subscription={subscription}
+          onOpenSubscription={handleOpenSubscription}
+          onOpenCapsule={handleOpenCapsule}
+          onLogout={onLogout}
+        />
 
         {/* Notificação Toast Flutuante */}
         {toastMessage && (
@@ -327,7 +333,7 @@ export default function MainApp({ token, onLogout }) {
         {activeTab === 'vault' && (
           <ErrorBoundary isEmbedded={true}>
             <Suspense fallback={<TabLoadingFallback />}>
-              <VaultView onNavigateTab={handleNavigateTab} profile={profile} />
+              <VaultView onNavigateTab={handleNavigateTab} />
             </Suspense>
           </ErrorBoundary>
         )}
@@ -349,7 +355,7 @@ export default function MainApp({ token, onLogout }) {
         {activeTab === 'capsules' && (
           <ErrorBoundary isEmbedded={true}>
             <Suspense fallback={<TabLoadingFallback />}>
-              <CapsulesView onNavigateTab={handleNavigateTab} profile={profile} />
+              <CapsulesView onNavigateTab={handleNavigateTab} profile={profile} openCapsuleRequest={capsuleToOpen} onCapsuleRequestHandled={() => setCapsuleToOpen(null)} />
             </Suspense>
           </ErrorBoundary>
         )}
@@ -403,14 +409,21 @@ export default function MainApp({ token, onLogout }) {
                 profile={profile}
                 setProfile={setProfile}
                 token={token}
-                onNavigateTab={handleNavigateTab}
-                onLogout={onLogout}
                 showToast={showToast}
                 theme={theme}
                 toggleTheme={toggleTheme}
-                subscription={subscription}
-                onOpenSubscription={handleOpenSubscription}
               />
+            </Suspense>
+          </ErrorBoundary>
+        )}
+
+        {/* -------------------------------------------------------------
+            ABA: SENHA DO COFRE (menu da conta)
+           ------------------------------------------------------------- */}
+        {activeTab === 'vault_security' && (
+          <ErrorBoundary isEmbedded={true}>
+            <Suspense fallback={<TabLoadingFallback />}>
+              <VaultSecurityView onNavigateTab={handleNavigateTab} />
             </Suspense>
           </ErrorBoundary>
         )}
@@ -426,7 +439,6 @@ export default function MainApp({ token, onLogout }) {
                 profile={profile}
                 onNavigateTab={handleNavigateTab}
                 showToast={showToast}
-                onSwitchMode={handleSwitchOperatingMode}
               />
             </Suspense>
           </ErrorBoundary>
@@ -454,7 +466,7 @@ export default function MainApp({ token, onLogout }) {
         {activeTab === 'help' && (
           <ErrorBoundary isEmbedded={true}>
             <Suspense fallback={<TabLoadingFallback />}>
-              <HelpView onNavigateTab={handleNavigateTab} />
+              <HelpView />
             </Suspense>
           </ErrorBoundary>
         )}

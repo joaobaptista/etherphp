@@ -28,31 +28,9 @@
 .vault-header-row {
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 24px;
   margin-bottom: 28px;
-}
-
-.vault-greeting-block {
-  flex: 1;
-}
-
-.vault-welcome-title {
-  font-family: var(--font-ui);
-  font-size: 32px;
-  font-weight: 700;
-  color: #1F1B1A;
-  margin: 0 0 6px 0;
-  letter-spacing: -0.2px;
-  line-height: 1.2;
-}
-
-.vault-welcome-subtitle {
-  font-family: var(--font-ui);
-  font-size: 14px;
-  font-weight: 400;
-  color: #8A7E7C;
-  margin: 0;
 }
 
 .btn-nova-capsula {

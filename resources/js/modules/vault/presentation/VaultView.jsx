@@ -4,7 +4,7 @@ import './VaultView.css';
 
 export const INITIAL_VAULT_ITEMS = [];
 
-export default function VaultView({ onNavigateTab, profile }) {
+export default function VaultView({ onNavigateTab }) {
   const [activeTab, setActiveTab] = useState('capsules');
   const [capsules, setCapsules] = useState(() => capsulesService.getCapsules());
 
@@ -29,16 +29,6 @@ export default function VaultView({ onNavigateTab, profile }) {
 
     return () => unsubscribe();
   }, []);
-
-  const rawName = profile?.name
-    ? profile.name.split(' ')[0]
-    : profile?.email
-    ? profile.email.split('@')[0]
-    : 'Guardião';
-
-  const userName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
-  const isFemale = profile?.gender === 'female';
-  const greeting = isFemale ? 'Bem-vinda' : 'Bem-vindo';
 
   // Métricas dinâmicas reais baseadas nas cápsulas salvas
   const totalCapsulas = capsules.length;
@@ -76,16 +66,8 @@ export default function VaultView({ onNavigateTab, profile }) {
   return (
     <div className="vault-screen-wrapper">
       <div className="vault-main-content">
-        {/* Cabeçalho */}
+        {/* O caminho fica na barra do topo; aqui só a ação principal */}
         <div className="vault-header-row">
-          <div className="vault-greeting-block">
-            <h1 className="vault-welcome-title">
-              {greeting} ao seu Cofre, <span className="person-name">{userName}</span>!
-            </h1>
-            <p className="vault-welcome-subtitle">
-              Aqui está a visão geral das suas surpresas e mídias guardadas cifradas no seu cofre.
-            </p>
-          </div>
           <button
             type="button"
             className="btn-nova-capsula"

@@ -5,7 +5,7 @@
 
 import React, { createContext, useState, useEffect, useCallback, useMemo } from 'react';
 import {
-  detectBrowserLanguage,
+  initialLanguage,
   translate,
   DEFAULT_LANGUAGE,
   SUPPORTED_LANGUAGES,
@@ -16,12 +16,8 @@ import localeRepository from '../infrastructure/localeRepository.js';
 export const I18nContext = createContext(null);
 
 export function I18nProvider({ children }) {
-  // Inicialização com prioridade: 1) Salvo no localStorage -> 2) Detectado no navegador -> 3) Padrão (pt)
-  const [language, setLanguageState] = useState(() => {
-    const saved = localeRepository.getSavedLanguage();
-    if (saved) return saved;
-    return detectBrowserLanguage();
-  });
+  // Português por padrão; outro idioma só quando escolhido em Configurações (salvo no aparelho)
+  const [language, setLanguageState] = useState(() => initialLanguage(localeRepository.getSavedLanguage()));
 
   // Atualiza atributo lang na tag <html> do DOM
   useEffect(() => {

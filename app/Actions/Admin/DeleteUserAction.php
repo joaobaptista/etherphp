@@ -32,6 +32,11 @@ class DeleteUserAction
             throw new HttpException(400, 'Você não pode excluir sua própria conta nesta lista administrativa.');
         }
 
+        // Removing another admin is as sensitive as revoking the role: root only
+        if ($target->is_admin && ! RootAdmin::isRootEmail($actor->email)) {
+            throw new HttpException(403, 'Somente o administrador principal (root) pode excluir um administrador.');
+        }
+
         $memories = Memory::query()->where('author_id', $target->id)->get();
         foreach ($memories as $memory) {
             $this->storage->shredMedia($target->id, $memory->storage_key);

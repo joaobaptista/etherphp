@@ -13,15 +13,7 @@
   gap: 24px;
 }
 
-/* Breadcrumb */
-.capsules-breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  color: #7E6C66;
-}
-
+/* Breadcrumb (classes também usadas por outras telas) */
 .breadcrumb-parent {
   cursor: pointer;
   color: #7E6C66;
@@ -46,32 +38,10 @@
 .capsules-header-row {
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 20px;
   flex-wrap: wrap;
   margin-top: 4px;
-}
-
-.capsules-header-text {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  max-width: 620px;
-}
-
-.capsules-main-title {
-  font-family: var(--font-display);
-  font-size: 32px;
-  font-weight: 700;
-  color: #2D1917;
-  letter-spacing: -0.3px;
-  line-height: 1.2;
-}
-
-.capsules-main-subtitle {
-  font-size: 14px;
-  color: #7E6C66;
-  line-height: 1.5;
 }
 
 .btn-create-capsule-primary {

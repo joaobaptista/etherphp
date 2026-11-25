@@ -49,7 +49,7 @@ $vaultMasterKey = $envVaultKey !== ''
     : ($isProduction ? $envJwtSecret : ($envJwtSecret !== '' ? $envJwtSecret : 'ethernity-vault-secret-key-2026'));
 
 return [
-    'version' => '1.0.0',
+    'version' => '1.0.1',
 
     // One public address (APP_URL) is enough: local and production differ only in .env. Empty values fall back to it.
     'frontend_url' => $frontendUrl,

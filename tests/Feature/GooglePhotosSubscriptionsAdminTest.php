@@ -56,8 +56,10 @@ it('protects admin routes, root admins, and self-deletion', function (): void {
         ->assertOk()
         ->assertJsonPath('systemStatus', 'healthy');
 
-    // Root admin cannot be demoted or deleted
+    // Root admin cannot be demoted or deleted (a regular admin cannot even call the role route)
     $this->withToken($adminToken)->patchJson("/api/admin/users/{$root->id}/role", ['is_admin' => false])
+        ->assertStatus(403);
+    $this->withToken($jwt->issueForUser($root))->patchJson("/api/admin/users/{$root->id}/role", ['is_admin' => false])
         ->assertStatus(400);
     $this->withToken($adminToken)->deleteJson("/api/admin/users/{$root->id}")
         ->assertStatus(400);

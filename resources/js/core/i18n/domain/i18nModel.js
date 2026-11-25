@@ -1,6 +1,6 @@
 /**
  * i18nModel.js — Modelo e Regras de Domínio para Internacionalização
- * Contém regras puras de detecção de idioma do navegador, normalização e interpolação.
+ * Contém regras puras de idioma inicial, normalização e interpolação.
  */
 
 export const SUPPORTED_LANGUAGES = ['pt', 'en', 'es'];
@@ -45,32 +45,11 @@ export function normalizeLanguageCode(rawCode) {
 }
 
 /**
- * Detecta o idioma ideal baseado nas preferências do navegador (navigator.languages ou navigator.language).
+ * Idioma ao abrir o site: o escolhido em Configurações ou, sem escolha, o português.
+ * O idioma do navegador não é usado: só muda quando a pessoa troca manualmente.
  */
-export function detectBrowserLanguage(navigatorObj = typeof navigator !== 'undefined' ? navigator : null) {
-  if (!navigatorObj) return DEFAULT_LANGUAGE;
-
-  const candidateLanguages = [];
-  if (Array.isArray(navigatorObj.languages) && navigatorObj.languages.length > 0) {
-    candidateLanguages.push(...navigatorObj.languages);
-  }
-  if (navigatorObj.language) {
-    candidateLanguages.push(navigatorObj.language);
-  }
-  if (navigatorObj.userLanguage) {
-    candidateLanguages.push(navigatorObj.userLanguage);
-  }
-
-  for (const candidate of candidateLanguages) {
-    if (typeof candidate === 'string') {
-      const lower = candidate.toLowerCase();
-      if (lower.startsWith('pt')) return 'pt';
-      if (lower.startsWith('es')) return 'es';
-      if (lower.startsWith('en')) return 'en';
-    }
-  }
-
-  return DEFAULT_LANGUAGE;
+export function initialLanguage(savedLanguage) {
+  return savedLanguage ? normalizeLanguageCode(savedLanguage) : DEFAULT_LANGUAGE;
 }
 
 /**

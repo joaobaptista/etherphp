@@ -1,27 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import logoIconSvg from '../../assets/logo-icon.svg';
 import { useI18n } from '../i18n/presentation/useI18n.js';
-import { getAbsolutePhotoUrl, getUserInitials, isUserAdmin as checkUserAdmin } from '../../modules/profile/domain/profileModel.js';
 import './Sidebar.css';
 import { APP_VERSION, APP_VERSION_LABEL } from '../appVersion.js';
 
 
+// O modo administrador só chega aqui confirmado pelo servidor (MainApp); a troca fica no avatar da barra do topo.
 export default function Sidebar({
   activeTab,
   setActiveTab,
-  onLogout,
   isCollapsed = false,
   onToggleCollapse,
-  theme = 'light',
-  onToggleTheme,
-  profile,
   operatingMode = 'personal',
-  onToggleOperatingMode,
 }) {
-  const { t, language, changeLanguage, supportedLanguages } = useI18n();
-
-  // Verifica se o usuário é Vagner ou possui perfil Admin
-  const isUserAdmin = checkUserAdmin(profile);
+  const { t } = useI18n();
 
   const isCurrentAdminMode = operatingMode === 'admin';
 
@@ -57,11 +49,6 @@ export default function Sidebar({
       label: t('nav.calendar') || 'Calendário',
       icon: 'fa-regular fa-calendar',
     },
-    {
-      id: 'help',
-      label: t('nav.help') || 'Central de Ajuda',
-      icon: 'fa-regular fa-circle-question',
-    },
   ];
 
   // Menu Administrativo
@@ -80,17 +67,6 @@ export default function Sidebar({
   ];
 
   const navItems = isCurrentAdminMode ? adminNavItems : personalNavItems;
-
-  const userName = profile?.name || profile?.email?.split('@')[0] || '';
-  const userPlan = profile?.plan || '';
-  const [avatarError, setAvatarError] = useState(false);
-
-  const rawAvatar = profile?.avatar_url || profile?.photo_url || profile?.avatar || null;
-  const userAvatar = getAbsolutePhotoUrl(rawAvatar);
-
-  useEffect(() => {
-    setAvatarError(false);
-  }, [rawAvatar]);
 
   const handleItemClick = (item) => {
     setActiveTab(item.id);
@@ -129,41 +105,6 @@ export default function Sidebar({
           </button>
         </div>
 
-        {/* Switcher Fixo e Estável — Exclusivo para Vagner / Administradores */}
-        {isUserAdmin && (
-          <button
-            type="button"
-            className={`sidebar-admin-switch-btn ${isCurrentAdminMode ? 'active-mode' : ''}`}
-            onClick={() => {
-              const nextMode = isCurrentAdminMode ? 'personal' : 'admin';
-              if (onToggleOperatingMode) onToggleOperatingMode(nextMode);
-              if (nextMode === 'admin') {
-                setActiveTab('admin_users');
-              } else {
-                setActiveTab('memories');
-              }
-            }}
-            title={
-              isCurrentAdminMode
-                ? (t('admin.switchToUser') || 'Modo Pessoal')
-                : (t('admin.switchToAdmin') || 'Modo Admin')
-            }
-          >
-            <div className="admin-switch-inner">
-              <i className="fa-solid fa-arrow-right-arrow-left switch-icon"></i>
-              {!isCollapsed && (
-                <span className="admin-switch-label">
-                  {t('admin.switchToAdmin') || 'Modo Admin'}
-                </span>
-              )}
-              {!isCollapsed && (
-                <span className={`admin-mode-pill-tag ${isCurrentAdminMode ? 'pill-admin' : 'pill-personal'}`}>
-                  {isCurrentAdminMode ? (t('admin.modeAdminBadge') || 'ADMIN') : (t('admin.modePersonalBadge') || 'PESSOAL')}
-                </span>
-              )}
-            </div>
-          </button>
-        )}
       </div>
 
       {/* Navegação Principal com Ícones e Atalhos */}
@@ -191,90 +132,16 @@ export default function Sidebar({
         })}
       </nav>
 
-      {/* Rodapé da Sidebar com Card de Usuário (Pílula Coral Suave) + Engrenagem & Idiomas */}
-      <div className="sidebar-footer">
-        {!isCollapsed ? (
-          <>
-            {/* Card Pílula de Usuário (Acessa Perfil Diretamente) */}
-            <div
-              className={`sidebar-user-card-pill ${activeTab === 'profile' ? 'active-profile' : ''}`}
-              onClick={() => setActiveTab('profile')}
-              title={t('nav.settings') || 'Configurações e Perfil'}
-            >
-              {userAvatar && !avatarError ? (
-                <img
-                  src={userAvatar}
-                  alt={userName}
-                  className="user-card-avatar-pill"
-                  referrerPolicy="no-referrer"
-                  onError={() => setAvatarError(true)}
-                />
-              ) : (
-                <div className="user-card-avatar-pill user-card-initials-pill">
-                  {getUserInitials(userName)}
-                </div>
-              )}
-
-              <div className="user-card-meta-pill">
-                <span className="user-card-name-pill person-name">{userName}</span>
-                {userPlan && <span className="user-card-plan-pill">{userPlan}</span>}
-              </div>
-
-              <button
-                type="button"
-                className="btn-user-gear"
-                title={t('nav.settings') || 'Configurações e Perfil'}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setActiveTab('profile');
-                }}
-              >
-                <i className="fa-solid fa-gear"></i>
-              </button>
-            </div>
-
-            {/* Seletor de Idiomas + Versão */}
-            <div className="sidebar-bottom-row">
-              <div className="sidebar-lang-switcher">
-                {(supportedLanguages || ['pt', 'en', 'es']).map((lang) => (
-                  <button
-                    key={lang}
-                    type="button"
-                    className={`sidebar-lang-btn ${language === lang ? 'active' : ''}`}
-                    onClick={() => changeLanguage(lang)}
-                    title={lang.toUpperCase()}
-                  >
-                    {lang.toUpperCase()}
-                  </button>
-                ))}
-              </div>
-              <span className="sidebar-version" aria-label={`Versão ${APP_VERSION}`}>
-                Ethernity {APP_VERSION_LABEL}
-              </span>
-            </div>
-          </>
-        ) : (
-          <div
-            className="sidebar-user-card-collapsed"
-            onClick={() => setActiveTab('profile')}
-            title={`${userName} - Acessar Perfil`}
-          >
-            {userAvatar && !avatarError ? (
-              <img
-                src={userAvatar}
-                alt={userName}
-                className="user-card-avatar-pill"
-                referrerPolicy="no-referrer"
-                onError={() => setAvatarError(true)}
-              />
-            ) : (
-              <div className="user-card-avatar-pill user-card-initials-pill" title={userName}>
-                {getUserInitials(userName)}
-              </div>
-            )}
+      {/* Rodapé: só a versão (perfil e configurações ficam no avatar da barra do topo) */}
+      {!isCollapsed && (
+        <div className="sidebar-footer">
+          <div className="sidebar-bottom-row">
+            <span className="sidebar-version" aria-label={`Versão ${APP_VERSION}`}>
+              Ethernity {APP_VERSION_LABEL}
+            </span>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </aside>
   );
 }

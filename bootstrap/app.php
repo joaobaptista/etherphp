@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureAdmin;
+use App\Http\Middleware\EnsureRootAdmin;
 use App\Http\Middleware\JwtAuthenticate;
 use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
@@ -23,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'jwt' => JwtAuthenticate::class,
             'admin' => EnsureAdmin::class,
+            'root' => EnsureRootAdmin::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

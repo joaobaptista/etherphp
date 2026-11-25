@@ -52,7 +52,7 @@ const CURATION_PHOTOS = [];
 
 const EMOTIONS_LIST = ['Gratidão', 'Saudade', 'Alegria', 'Amor', 'Orgulho'];
 
-export default function CapsulesView({ onNavigateTab, profile }) {
+export default function CapsulesView({ onNavigateTab, profile, openCapsuleRequest = null, onCapsuleRequestHandled }) {
   const { t } = useI18n();
   const fileInputRef = useRef(null);
   const [capsules, setCapsules] = useState(() => capsulesService.getCapsules());
@@ -571,6 +571,16 @@ export default function CapsulesView({ onNavigateTab, profile }) {
     setViewMode('detail');
   };
 
+  // Busca do topo: abre direto a cápsula escolhida
+  useEffect(() => {
+    if (!openCapsuleRequest?.id) return;
+    const cap = capsulesService.getCapsules().find((c) => c.id === openCapsuleRequest.id);
+    if (cap) handleOpenCapsule(cap);
+    // Pedido atendido: voltar a Cápsulas depois não reabre esta cápsula
+    onCapsuleRequestHandled?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openCapsuleRequest?.at]);
+
   // Ao clicar em "Criar Cápsulas Selecionadas", abre o formulário da primeira pessoa
   const handleProceedToConfigure = () => {
     if (selectedPeopleIds.length === 0) {
@@ -838,22 +848,8 @@ export default function CapsulesView({ onNavigateTab, profile }) {
          ------------------------------------------------------------- */}
       {viewMode === 'list' && (
         <>
-          <div className="capsules-breadcrumb">
-            <span className="breadcrumb-parent" onClick={() => onNavigateTab && onNavigateTab('vault')}>
-              {t('nav.vault')}
-            </span>
-            <span className="breadcrumb-arrow">&gt;</span>
-            <span className="breadcrumb-current">{t('capsulesView.title')}</span>
-          </div>
-
+          {/* O caminho fica na barra do topo; aqui só a ação principal */}
           <div className="capsules-header-row">
-            <div className="capsules-header-text">
-              <h1 className="capsules-main-title">{t('capsulesView.title')}</h1>
-              <p className="capsules-main-subtitle">
-                {t('capsulesView.subtitle')}
-              </p>
-            </div>
-
             <button type="button" className="btn-create-capsule-primary" onClick={handleStartCreate}>
               <i className="fa-solid fa-plus"></i> {t('capsulesView.createBtn')}
             </button>

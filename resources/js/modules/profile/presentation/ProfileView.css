@@ -31,13 +31,6 @@
   flex-wrap: wrap;
 }
 
-.prof-top-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding-top: 4px;
-}
-
 .prof-left-title-block {
   flex: 1;
 }
@@ -96,7 +89,7 @@
   align-items: start;
 }
 
-/* ── Coluna Esquerda: Card de Identidade & Ações Rápidas ── */
+/* ── Coluna Esquerda: Card de Identidade (foto) ── */
 .prof-sidebar-column {
   display: flex;
   flex-direction: column;
@@ -208,128 +201,6 @@
   font-size: 13px;
   color: #8C827F;
   margin: 0;
-}
-
-/* Ações Rápidas da Barra Lateral */
-.prof-quick-actions-group {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  width: 100%;
-}
-
-.prof-action-btn-card {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  width: 100%;
-  padding: 12px 16px;
-  background: #FFFFFF;
-  border: 1.5px solid #ECE7E2;
-  border-radius: 14px;
-  cursor: pointer;
-  text-align: left;
-  transition: all 0.2s ease;
-}
-
-.prof-action-btn-card:hover {
-  border-color: #FFCDC5;
-  background-color: #FFF9F7;
-  transform: translateY(-1px);
-}
-
-.prof-action-icon-box {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  flex-shrink: 0;
-}
-
-.prof-action-icon-box.coral {
-  background-color: #FFF0ED;
-  color: #FF5A43;
-}
-
-.prof-action-icon-box.yellow {
-  background-color: #FFF8E6;
-  color: #D97706;
-}
-
-.prof-action-icon-box.purple {
-  background-color: #F4F1FD;
-  color: #7C3AED;
-}
-
-.prof-action-meta {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  line-height: 1.25;
-}
-
-.prof-action-title-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.prof-action-title {
-  font-family: var(--font-ui);
-  font-size: 13.5px;
-  font-weight: 700;
-  color: #1F1B1A;
-}
-
-.prof-plan-pill-tag {
-  font-family: var(--font-ui);
-  font-size: 11px;
-  font-weight: 700;
-  background-color: #FFEBE6;
-  color: #FF5A43;
-  padding: 2px 8px;
-  border-radius: 6px;
-}
-
-.prof-action-sub {
-  font-family: var(--font-ui);
-  font-size: 11.5px;
-  color: #8C827F;
-}
-
-.prof-action-chevron {
-  color: #BDB4AE;
-  font-size: 12px;
-}
-
-/* Botão Sair da Conta */
-.prof-btn-logout-card {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px 16px;
-  background-color: #FFF5F5;
-  border: 1.5px solid #FFDCDA;
-  border-radius: 14px;
-  color: #E53935;
-  font-family: var(--font-ui);
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  margin-top: 4px;
-}
-
-.prof-btn-logout-card:hover {
-  background-color: #FEECEB;
-  border-color: #E53935;
-  transform: translateY(-1px);
 }
 
 /* ── Coluna Direita: Formulários & Configurações ───────── */
@@ -533,30 +404,142 @@
   }
 }
 
-.prof-vault-key-card {
+/* ── Preferências (aparência, idioma e instalação) ── */
+.prof-prefs-card {
+  margin-top: 16px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
+  text-align: left;
 }
 
-.prof-vault-key-card .prof-action-btn-card:disabled {
-  cursor: default;
-  opacity: 0.8;
+.prof-prefs-title {
+  font-family: var(--font-ui);
+  font-size: 15px;
+  font-weight: 700;
+  color: #1F1B1A;
+  margin: 0 0 8px;
 }
 
-.prof-vault-key-links {
+.prof-pref-row {
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px 12px;
-  padding: 0 8px 4px 62px;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 8px;
+  background: none;
+  border: none;
+  border-radius: 10px;
+  text-align: left;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 600;
+  color: #1F1B1A;
 }
 
-.prof-vault-key-links button {
-  border: none;
-  background: none;
-  padding: 0;
-  font-size: 12px;
-  font-weight: 600;
-  color: #E05A47;
+.prof-pref-clickable {
   cursor: pointer;
+}
+
+.prof-pref-clickable:hover {
+  background: #F8F5F2;
+}
+
+.prof-pref-clickable:focus-visible {
+  outline: 2px solid #FF5A43;
+  outline-offset: 1px;
+}
+
+.prof-pref-icon {
+  width: 18px;
+  text-align: center;
+  color: #8C827F;
+}
+
+.prof-pref-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.prof-pref-text small {
+  font-size: 12px;
+  font-weight: 500;
+  color: #8C827F;
+}
+
+.prof-pref-chevron {
+  font-size: 12px;
+  color: #BDB4AE;
+}
+
+/* Chave liga/desliga do modo escuro */
+.prof-switch {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: #E5DED7;
+  transition: background-color 0.15s ease;
+}
+
+.prof-switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: transform 0.15s ease;
+}
+
+.prof-switch.on {
+  background: #FF5A43;
+}
+
+.prof-switch.on::after {
+  transform: translateX(16px);
+}
+
+.prof-lang-switcher {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  margin: 0 8px 6px 38px;
+  padding: 3px;
+  background: #F4F0EB;
+  border-radius: 10px;
+}
+
+.prof-lang-btn {
+  padding: 6px 4px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 700;
+  color: #7A6A64;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.prof-lang-btn:hover {
+  color: #1F1B1A;
+}
+
+.prof-lang-btn.active {
+  background: #FFFFFF;
+  color: #FF5A43;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.prof-lang-btn:focus-visible {
+  outline: 2px solid #FF5A43;
+  outline-offset: 1px;
 }

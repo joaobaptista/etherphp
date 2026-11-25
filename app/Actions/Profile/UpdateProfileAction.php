@@ -4,6 +4,7 @@ namespace App\Actions\Profile;
 
 use App\Data\UpdateProfileData;
 use App\Models\User;
+use App\Support\RootAdmin;
 use Illuminate\Support\Facades\Hash;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
@@ -23,6 +24,11 @@ class UpdateProfileAction
 
                 if ($exists) {
                     throw new HttpException(409, 'Este e-mail já está em uso por outra conta.');
+                }
+
+                // Switching to a root admin e-mail would make this account root
+                if (RootAdmin::isRootEmail($newEmail)) {
+                    throw new HttpException(403, 'Este e-mail é reservado e não pode ser usado nesta conta.');
                 }
 
                 $updates['email'] = $newEmail;

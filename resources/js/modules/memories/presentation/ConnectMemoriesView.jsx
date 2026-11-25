@@ -450,14 +450,6 @@ export default function ConnectMemoriesView({ onNavigateTab, profile }) {
           ========================================================================= */}
       {viewMode === 'connect' ? (
         <div className="connect-memories-container">
-          {/* Header Centralizado */}
-          <header className="connect-memories-header">
-            <h1 className="connect-title">{t('memories.title', 'Conecte suas memórias')}</h1>
-            <p className="connect-subtitle">
-              {t('memories.subtitle', 'O ethernity dms ajuda você a eternizar legados e organizar lembranças com carinho. Conecte sua biblioteca de fotos para descobrirmos juntos os momentos e as pessoas mais especiais.')}
-            </p>
-          </header>
-
           {/* GRID DAS FONTES DE MEMÓRIAS (EXATO AO MOCKUP) */}
           <div className="connect-sources-wrapper">
             <div className="connect-sources-top-row">
@@ -571,48 +563,6 @@ export default function ConnectMemoriesView({ onNavigateTab, profile }) {
               </button>
             </div>
           </div>
-
-          {/* SEÇÃO DE SEGURANÇA E PRIVACIDADE (EXATO AO MOCKUP) */}
-          <section className="connect-security-section">
-            <h4 className="security-section-title">{t('memories.securityBadge', 'SUAS FOTOS PERMANECEM SUAS')}</h4>
-            <div className="security-items-grid">
-              <div className="security-item">
-                <i className="fa-solid fa-lock"></i>
-                <span>{t('memories.securityE2E', 'Guardado cifrado (AES-256)')}</span>
-              </div>
-              <div className="security-item">
-                <i className="fa-solid fa-eye-slash"></i>
-                <span>{t('memories.securityNoSell', 'Nenhum dado é vendido ou compartilhado')}</span>
-              </div>
-              <div className="security-item">
-                <i className="fa-solid fa-user-shield"></i>
-                <span>{t('memories.securityControl', 'Você tem controle total sobre o acesso')}</span>
-              </div>
-              <div className="security-item">
-                <i className="fa-solid fa-user-xmark"></i>
-                <span>{t('memories.securityNoStaff', 'Nem os funcionários da Ethernity podem ver as fotos')}</span>
-              </div>
-            </div>
-          </section>
-
-          {/* AÇÕES DE NAVEGAÇÃO INFERIOR */}
-          <footer className="connect-footer-actions">
-            <button
-              type="button"
-              className="btn-link-skip"
-              onClick={() => setViewMode('curation')}
-            >
-              {t('memories.skipForNow', 'Pular por agora')}
-            </button>
-            <button
-              type="button"
-              className="btn-advance-curation"
-              onClick={() => setViewMode('connected_sources')}
-            >
-              <span>{t('memories.viewCurationBtn', 'Avançar para a Curadoria na Linha do Tempo')}</span>
-              <i className="fa-solid fa-arrow-right"></i>
-            </button>
-          </footer>
         </div>
       ) : viewMode === 'connected_sources' ? (
         /* =========================================================================

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import adminRepository from '../infrastructure/adminRepository.js';
 import { useI18n } from '../../../core/i18n/presentation/useI18n.js';
-import NotificationBell from '../../../core/components/NotificationBell.jsx';
 import './AdminView.css';
 
 export default function AdminDashboardView({
@@ -53,7 +52,6 @@ export default function AdminDashboardView({
               <i className="fa-solid fa-arrow-left"></i>
               <span>{t('admin.switchToUser') || 'Voltar ao Modo Pessoal'}</span>
             </button>
-            <NotificationBell onNavigateTab={onNavigateTab} />
           </div>
         </div>
 
